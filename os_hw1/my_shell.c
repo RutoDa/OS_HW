@@ -39,10 +39,14 @@ int main () {
                 pid = fork(); // 產生child
                 if (pid == 0) {
                     execl(path,"child",NULL);
+                    printf("%s is not found. fork() succeeded\n", path);
                     exit(1);
-                } else {
+                } else if (pid > 0) {
                     pid_t ch = wait(&child_exit_status);
                     //printf("\nI'm parent. waitpid %d, status %d\n", pid, child_exit_status);
+                } else {
+                    printf("%s is not found. fork() succeeded\n", path);
+                    exit(1);
                 }
             }   
         }

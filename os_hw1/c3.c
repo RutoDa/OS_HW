@@ -31,10 +31,11 @@ return 0;
 
 int main() {
     char c = 'a';
-    int i = 1;
+    int i = 0;
     pid_t pid = getpid();
-    while (1) {
-      sleep(3);
+    printf("Sleep 1 second, 3 times");
+    for (int j = 0; j < 3; j++) {
+      sleep(1);
       printf("I am the child. pid: %d\n", pid);
       printf("%d Continue? Type s to quit.\n", i++);
       if (kbhit()) {
