@@ -1,33 +1,47 @@
 #include <stdlib.h> 
-#include <unistd.h> /* needed to define exit() */
-#include <errno.h> /* needed for fork() and getpid() */ /* needed for errno */
-#include <stdio.h> /* needed for printf() */
+#include <unistd.h>
+#include <errno.h> 
+#include <stdio.h> 
 #include <string.h>
+#include <sys/wait.h>
 
-void find_path(char *input, char *path);
-void clear (void);
+void input_split(char *input_str, char *path)  {
+    // 用迴圈方式拆解 input string 的路徑與 ＆
+    for (int i = 0; i < strlen(input_str); i++) {
+        if (input_str[i] == ' ') { 
+            // 假如讀到空格表示 input string 的 path 已結束
+            path[i] = '\0'; // 將 path 最後一格填上 \0 變為字串
+            break;
+        } else if (input_str[i] == '\n') { 
+            // 假如讀到 \n 表示 input string 整個讀完了
+            path[i] = '\0'; // 將 path 最後一格填上 \0 變為字串
+        } else {
+            // 將 path index i 的 element 填上 input 的 i 的 element
+            path[i] = input_str[i];
+        }
+    }
+}
 
 int main () {
-    char bg = 0;
-    char have_child = 0;
+    char is_back_ground = 0;
     pid_t parent_pid = getpid();
     pid_t pid;
     printf("Parent pid is %d\n", parent_pid);
-    while (1) {
-        char input[50]; //存 input 的字串
-        char path[50];
+    for(;;) {
+        char path[1025]; // store path，linux 路徑最長限制為 1024byte + 字串最後一格填 \0
+        char input_str[1027]; // store input string，比 path 多 2byte 來存 &
         int child_exit_status;
-        printf("1094841 ms> "); // print 出提示符號
+        printf("1094841 ms> "); // print 提示符號
         
-        if (fgets(input, sizeof(input), stdin)) 
+        if (fgets(input_str, sizeof(input_str), stdin)) 
         {
-            bg = 0;
+            is_back_ground = 0;
             
-            if (input[strlen(input)-2]=='&') bg = 1;
+            if (input_str[strlen(input_str)-2]=='&') is_back_ground = 1;
 
-            find_path(input, path);
+            input_split(input_str, path);
         
-            if (bg == 1) {
+            if (is_back_ground == 1) {
                 // parent 不會 wait child
                 pid = fork(); // 產生child
                 if (pid == 0) {
@@ -53,17 +67,3 @@ int main () {
     }
     return 0;
 }
-
-void find_path(char *input, char *path) {
-    for (int i = 0; i < strlen(input); i++) {
-        if (input[i] == ' ') {
-            path[i] = '\0';
-            break;
-        } else if (input[i] == '\n') {
-            path[i] = '\0';
-        } else {
-            path[i] = input[i];
-        }
-    }
-}
-
