@@ -33,7 +33,7 @@ int main() {
     char c = 'a';
     int i = 0;
     pid_t pid = getpid();
-    printf("Sleep 1 second, 3 times");
+    printf("Sleep 1 second, 3 times\n");
     for (int j = 0; j < 3; j++) {
       sleep(1);
       printf("I am the child. pid: %d\n", pid);
