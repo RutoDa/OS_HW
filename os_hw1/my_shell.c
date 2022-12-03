@@ -81,7 +81,7 @@ int main()
                 {
                     // child 會跑以下程式碼
                     execl(path, path, NULL);
-                    printf("\n%s is not found.\n", path);
+                    printf("%s is not found.\n", path);
                     exit(7); // execl 失敗就會中止 child ， 並回傳 7
                 }
                 else if (pid > 0)
