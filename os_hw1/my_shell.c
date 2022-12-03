@@ -29,13 +29,13 @@ int main()
 {
     char no_wait = 0;
     pid_t parent_pid = getpid();
-    printf("Parent pid is %d\n", parent_pid);
-    for (;;)
+    printf("Parent(my_shell) pid is %d\n", parent_pid);
+    for (;;) // 跑無限迴圈
     {
-        char path[1026];           // store path，linux 路徑最長限制為 1024byte + 字串最後一格填 \0
-        char input_str[1028];      // store input string，比 path 多 3byte 來存 &\n
-        int child_exit_status; 
-        printf("1094841 ms> ");    // print 提示符號
+        char path[1026];      // store path，linux 路徑最長限制為 1024byte + 字串最後一格填 \0
+        char input_str[1028]; // store input string，比 path 多 3byte 來存 &\n
+        int child_exit_status;
+        printf("1094841 ms> "); // print 提示符號
 
         if (fgets(input_str, sizeof(input_str), stdin))
         {
@@ -57,19 +57,19 @@ int main()
                 pid_t pid = fork(); // 產生child
                 if (pid == 0)
                 {
-                    // child
+                    // child 會跑以下程式碼
                     execl(path, path, NULL); // 將 child 改成指定路徑的程式碼
                     printf("%s is not found.\n", path);
                     exit(1); // execl 失敗就會中止 child
                 }
                 else if (pid > 0)
                 {
-                    // parent
+                    // parent 什麼都不做
                 }
                 else
                 {
-                    // fork() failed
-                    printf("fork() failed\n");
+                    // fork() 失敗
+                    printf("fork() failed.\n");
                 }
             }
             else
@@ -79,25 +79,25 @@ int main()
 
                 if (pid == 0)
                 {
-                    // chlild
+                    // child 會跑以下程式碼
                     execl(path, path, NULL);
                     printf("\n%s is not found.\n", path);
                     exit(7); // execl 失敗就會中止 child ， 並回傳 7
                 }
                 else if (pid > 0)
                 {
-                    // parent
-                    wait(&child_exit_status);
-                    if (WEXITSTATUS(child_exit_status)!=7 && child_exit_status!=9) 
+                    // parent 會跑以下程式碼
+                    pid_t ended_child_pid = wait(&child_exit_status);
+                    if (WEXITSTATUS(child_exit_status) != 7)
                     {
                         //假如不是因為找不到而結束的則會印出以下
-                        printf("\nI'm parent. waitpid %d, status %d\n", pid, child_exit_status);
+                        printf("\nI'm parent(my_shell). Ended child pid: %d, status: %d\n", ended_child_pid, child_exit_status);
                     }
                 }
                 else
                 {
-                    // fork() failed
-                    printf("fork() failed\n");
+                    // fork() 失敗
+                    printf("fork() failed.\n");
                 }
             }
         }
