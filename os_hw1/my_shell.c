@@ -29,28 +29,28 @@ int main()
 {
     char no_wait = 0;
     pid_t parent_pid = getpid();
+    int child_exit_status;
     printf("Parent(my_shell) pid is %d\n", parent_pid);
     for (;;) // 跑無限迴圈
     {
-        char path[1026];      // store path，linux 路徑最長限制為 1024byte + 字串最後一格填 \0
-        char input_str[1028]; // store input string，比 path 多 3byte 來存 &\n
-        int child_exit_status;
+        char path[1026] = {0};      // store path，linux 路徑最長限制為 1024byte + 字串最後一格填 \0
+        char input_str[1028] = {0}; // store input string，比 path 多 3byte 來存 &\n
         printf("1094841 ms> "); // print 提示符號
 
         if (fgets(input_str, sizeof(input_str), stdin))
         {
+            // 將 input string 中的路徑 存放到 path
+            input_split(input_str, path);
+            if (strlen(path) == 0)
+                continue;
+
             no_wait = 0; // 先設為 0
             if (input_str[strlen(input_str) - 2] == '&')
             {
                 //假如 input string 的最後一個字為 &
                 no_wait = 1; // 表示 my_shell 不需等待 chlild
             }
-
-            // 將 input string 中的路徑 存放到 path
-            input_split(input_str, path);
-            if (strlen(path) == 0)
-                continue;
-
+            
             if (no_wait == 1)
             {
                 // my_shell 不會 wait child
@@ -88,7 +88,7 @@ int main()
                 {
                     // parent 會跑以下程式碼
                     pid_t ended_child_pid = wait(&child_exit_status);
-                    if (WEXITSTATUS(child_exit_status) != 7)
+                    if (WEXITSTATUS(child_exit_status) != 7 && child_exit_status!=9)
                     {
                         //假如不是因為找不到而結束的則會印出以下
                         printf("\nI'm parent(my_shell). Ended child pid: %d, status: %d\n", ended_child_pid, child_exit_status);
