@@ -9,20 +9,43 @@
 #define TEXT_SZ 2048
     
 struct shared_use_st{
-    int written_by_you;
+    int written_by_you; //誰最後寫的 0是client 1是server
     char some_text[TEXT_SZ];
 };
-void string_split(char *a, char *b, char *input);
+
+//將字串分割的function
+void string_split(char *a, char *b, char *input) {
+    char turn = 'a';
+    int i=0, j=0;
+    while(input[i]!='\n') {
+        if (input[i] == ' ') {
+            turn = 'b';
+            a[j] = '\0';
+            j = -1;
+        } else if (turn == 'a') {
+            a[j] = input[i];
+        } else {
+            b[j] = input[i];
+        }
+        j++;
+        i++;
+    }
+    if (turn == 'a') {
+        a[j] = '\0';
+        b[0] = '\0';
+    } else {
+        b[j] = '\0';
+    }
+}
 
 int main(){
-    int running = 1;
     int shmid;
     void *shared_memory=(void *) 0;
     struct shared_use_st *shared_stuff;
     
     srand((unsigned int)getpid());
     
-    shmid = shmget((key_t)1234,sizeof(struct shared_use_st),0666|IPC_CREAT);
+    shmid = shmget((key_t)5269,sizeof(struct shared_use_st),0666|IPC_CREAT);
     
     if (shmid == -1){
         fprintf(stderr,"shmget failed\n");
@@ -42,19 +65,24 @@ int main(){
     shared_stuff = (struct shared_use_st *)shared_memory;
     shared_stuff->written_by_you = 0;
     
-    while(running){
-        if (shared_stuff->written_by_you){
-            // char a[20];
-            // char b[20];
-            // if (strlen(shared_stuff->some_text)!=0)
-            //     string_split(a, b, shared_stuff->some_text);
-            printf("You wrote:%s",shared_stuff->some_text);
-            sleep(rand()%4);
-            shared_stuff->written_by_you = 0;
+    while(1){
+        if (shared_stuff->written_by_you==1){
+            char *input = shared_stuff->some_text;
+            char a[100];
+            char b[100];
+            char output[101];
+            int x,y,z;
+            string_split(a, b, input);
+            if (strlen(a)==0) x=0;
+            else x = atoi(a);
+            if (strlen(b)==0) y=0;
+            else y = atoi(b);
+            z = x+y;
+            sprintf(output, "%d", z);
             
-            if (strncmp(shared_stuff ->some_text,"end",3) == 0){
-                running =0;
-            }
+            strncpy(shared_stuff->some_text,output,TEXT_SZ);
+            shared_stuff->written_by_you =2;
+            sleep(rand()%4);
         }
     }
     
@@ -68,20 +96,4 @@ int main(){
     }
         
     exit(EXIT_SUCCESS);
-}
-
-void string_split(char *a, char *b, char *input) {
-    char turn = 'a';
-    int i;
-    for (i = 0; i < strlen(input); i++) {
-        if (input[i] == ' ') {
-            turn = 'b';
-            a[i] = '\0';
-        } else if (turn = 'a') {
-            a[i] = input[i];
-        } else {
-            b[i] = input[i];
-        }
-    }
-    b[i] = '\0';
 }

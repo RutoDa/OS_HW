@@ -14,14 +14,13 @@ struct shared_use_st{
 };
 
 int main(){
-    int running = 1;
     int shmid;
     void *shared_memory=(void *) 0;
     struct shared_use_st *shared_stuff;
     
     char buffer[BUFSIZ];
     
-    shmid = shmget((key_t)1234,sizeof(struct shared_use_st),0666|IPC_CREAT);
+    shmid = shmget((key_t)5269,sizeof(struct shared_use_st),0666|IPC_CREAT);
     
     if (shmid == -1){
         fprintf(stderr,"shmget failed\n");
@@ -37,10 +36,10 @@ int main(){
     
     printf("pid:%d\n", getpid());
     printf("Memory attached at %X\n",(int)shared_memory);
-    printf("Type Ctrl+C to exit");
+    printf("Type q to exit");
     shared_stuff = (struct shared_use_st *)shared_memory;
     
-    while(running){
+    while(1){
         while(shared_stuff->written_by_you ==1){
             printf("waiting for server....\n");
             sleep(1);
@@ -48,10 +47,16 @@ int main(){
         printf("\n-------------------------");
         printf("\nEnter some text: ");
         fgets(buffer,BUFSIZ,stdin);
+        if (strcmp(buffer,"q\n") == 0){
+            break;
+        }
+
         printf("waiting for server....");
         strncpy(shared_stuff->some_text,buffer,TEXT_SZ);
         shared_stuff->written_by_you =1;
         
+        
+
         while (shared_stuff->written_by_you!=2){
             printf("\nwaiting for server....");
             sleep(1);
@@ -59,9 +64,6 @@ int main(){
         printf("\nServer Output:%s",shared_stuff->some_text);
         shared_stuff->written_by_you =0;
 
-        if (strncmp(buffer,"end",3) == 0){
-            running = 0;
-        }
     }
     
     exit(EXIT_SUCCESS);

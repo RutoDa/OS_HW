@@ -9,10 +9,11 @@
 #define TEXT_SZ 2048
     
 struct shared_use_st{
-    int written_by_you;
+    int written_by_you; //誰最後寫的 0是client 1是server
     char some_text[TEXT_SZ];
 };
 
+//將字串分割的function
 void string_split(char *a, char *b, char *input) {
     char turn = 'a';
     int i=0, j=0;
@@ -38,14 +39,13 @@ void string_split(char *a, char *b, char *input) {
 }
 
 int main(){
-    int running = 1;
     int shmid;
     void *shared_memory=(void *) 0;
     struct shared_use_st *shared_stuff;
     
     srand((unsigned int)getpid());
     
-    shmid = shmget((key_t)1234,sizeof(struct shared_use_st),0666|IPC_CREAT);
+    shmid = shmget((key_t)5269,sizeof(struct shared_use_st),0666|IPC_CREAT);
     
     if (shmid == -1){
         fprintf(stderr,"shmget failed\n");
@@ -65,7 +65,7 @@ int main(){
     shared_stuff = (struct shared_use_st *)shared_memory;
     shared_stuff->written_by_you = 0;
     
-    while(running){
+    while(1){
         if (shared_stuff->written_by_you==1){
             char *input = shared_stuff->some_text;
             char a[100];
@@ -78,17 +78,11 @@ int main(){
             if (strlen(b)==0) y=0;
             else y = atoi(b);
             z = x+y;
-            //printf("%s",input);
             sprintf(output, "%d", z);
-            //printf("You wrote:%s", output);
             
             strncpy(shared_stuff->some_text,output,TEXT_SZ);
             shared_stuff->written_by_you =2;
-            //shared_stuff->written_by_you = 0;
             sleep(rand()%4);
-            if (strncmp(shared_stuff ->some_text,"end",3) == 0){
-                running =0;
-            }
         }
     }
     
